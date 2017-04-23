@@ -9,6 +9,7 @@ consumer_secret = ""
 access_key = ""
 access_secret = ""
 
+
 def get_sentiment():
     call("../../Downloads/stanford-corenlp-full-2016-10-31/stanford-corenlp-full-2016-10-31/java -mx5g -cp \"*\" edu.stanford.nlp.pipline.StanfordCoreNLPServer -timeout 10000")
 
