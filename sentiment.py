@@ -9,7 +9,29 @@ def start_connection():
     # On windows
     Popen("cd stanford-corenlp-full-2016-10-31 & start /wait java -mx5g -cp \"*\" edu.stanford.nlp.pipeline.StanfordCoreNLPServer -timeout 10000",shell=True)
 
-#def get_sentiment(phrases):
+def get_sentiment(phrase):
+    nlp = StanfordCoreNLP('http://localhost:9000')
+    
+    res = nlp.annotate(phrase, properties={'annotators': 'sentiment','outputFormat': 'json', 'timeout': 10000,})
+    
+    n = 0
+    sum = 0
+
+    for s in res["sentences"]:
+        n = n + 1
+        sum = sum + int(s["sentimentValue"])
+
+    return sum / n
+
+def get_total_sentiment(phrases):
+    n = 0
+    sum = 0
+    
+    for phrase in phrases:
+        n = n + 1
+        sum = sum + get_sentiment(phrase)
+
+    return int(sum / n)
 
 # Used for establishing connections to the Twitter API
 class TwitterClient(object):
@@ -40,6 +62,9 @@ class TwitterClient(object):
 
         # initialize a list to hold all the tweepy Tweets
         alltweets = []
+
+        # list of actual tweets
+        clean_tweets = []
 
         # make initial request for most recent tweets (200 is the maximum allowed count)
         new_tweets = self.api.user_timeline(screen_name = screen_name,count=200)
@@ -75,16 +100,23 @@ class TwitterClient(object):
         
             # convert post from type byte to utf-8
             post_content = raw_post.decode("utf-8")
-        
+            
+            clean_tweets.append(post_content)
             # display post on the backend
-            print("\n" + post_content + "\n")
+            #print("\n" + post_content + "\n")
+    
+        return clean_tweets
 
 def main():
+    # start Standford NLP Core
     start_connection()
-    #pass in the username of the account you want to download
-    #get_all_tweets("realDonaldTrump")
+    
+    # pass in the username of the account you want to download
     api = TwitterClient()
-    api.get_all_tweets("realDonaldTrump")
+    tweets = api.get_all_tweets("realDonaldTrump")
+    
+    # Calculate and display the sentiment of the tweets
+    print("Total sentiment value: " + get_total_sentiment(tweets))
 
 if __name__ == '__main__':
     main()    
